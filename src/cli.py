@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 from .generator import generate_variants, choose_best
-from .export_pdf import md_to_pdf
+from ..backend.export_pdf import md_to_pdf
 
 def main():
     ap = argparse.ArgumentParser()

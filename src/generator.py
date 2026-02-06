@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
-from .llm_client_gemini import generate_text
-from .prompts import build_cover_letter_prompt
+from ..backend.llm_client_gemini import generate_text
+from ..backend.prompts import build_cover_letter_prompt
 
 def read_text(p: Path) -> str:
     return p.read_text(encoding="utf-8")
