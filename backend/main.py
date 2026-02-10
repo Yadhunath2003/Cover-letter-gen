@@ -1,7 +1,6 @@
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -42,22 +41,16 @@ def _read_file_or_raise(path: Path) -> str:
 
 
 class GenerateReq(BaseModel):
-
-    # Option A: send text directly (Swagger paste)
-    resume_md: Optional[str] = None
-    jd_text: Optional[str] = None
-
-
-    # read from /data folder by filename
-    resume_file: str = "resume.md"
-    jd_file: str = "job_description.txt"
-
     # Style must match templates/style_<style>.txt
     style: str = "impact"
 
     # Model + generation
-    model: str = "gemini-1.5-flash"
+    model: str = "gemini-2.5-flash"
     temperature: float = 0.35
+
+    # Files to read from /data folder
+    resume_file: str = "resume.md"
+    jd_file: str = "job_description.txt"
 
 
 @app.get("/api/styles")
@@ -84,20 +77,32 @@ def models():
         out.append(m.name)
     return {"models": out}
 
+@app.get("/api/debug-data")
+def debug_data():
+    """Debug endpoint to verify data files are being read correctly"""
+    resume_path = (DATA_DIR / "resume.md").resolve()
+    jd_path = (DATA_DIR / "job_description.txt").resolve()
+
+    return {
+        "data_dir": str(DATA_DIR),
+        "resume_path": str(resume_path),
+        "resume_exists": resume_path.exists(),
+        "resume_size": resume_path.stat().st_size if resume_path.exists() else 0,
+        "resume_preview": resume_path.read_text(encoding="utf-8")[:200] if resume_path.exists() else "",
+        "jd_path": str(jd_path),
+        "jd_exists": jd_path.exists(),
+        "jd_size": jd_path.stat().st_size if jd_path.exists() else 0,
+        "jd_preview": jd_path.read_text(encoding="utf-8")[:200] if jd_path.exists() else "",
+    }
+
 @app.post("/api/generate")
 def generate(req: GenerateReq):
     if not os.getenv("GEMINI_API_KEY"):
         raise HTTPException(status_code=500, detail="Missing GEMINI_API_KEY (check backend/.env)")
 
-    # Load resume + JD (prefer request body, otherwise read from /data)
-    resume_md = (req.resume_md or "").strip()
-    jd_text = (req.jd_text or "").strip()
-
-    if not resume_md:
-        resume_md = _read_file_or_raise((DATA_DIR / req.resume_file).resolve())
-
-    if not jd_text:
-        jd_text = _read_file_or_raise((DATA_DIR / req.jd_file).resolve())
+    # Always read from data folder
+    resume_md = _read_file_or_raise((DATA_DIR / req.resume_file).resolve())
+    jd_text = _read_file_or_raise((DATA_DIR / req.jd_file).resolve())
 
     # Load style hint
     style_file = (TEMPLATES_DIR / f"style_{req.style}.txt").resolve()
@@ -109,6 +114,16 @@ def generate(req: GenerateReq):
 
     # Build prompt
     prompt = build_cover_letter_prompt(resume_md, jd_text, style_hint)
+
+    # Debug: Print to console to verify data is being used
+    print(f"=== DEBUG INFO ===")
+    print(f"Resume length: {len(resume_md)} chars")
+    print(f"JD length: {len(jd_text)} chars")
+    print(f"Style: {req.style}")
+    print(f"Model: {req.model}")
+    print(f"Prompt length: {len(prompt)} chars")
+    print(f"Resume preview: {resume_md[:100]}...")
+    print(f"==================")
 
     # Generate
     try:

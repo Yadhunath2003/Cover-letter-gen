@@ -1,24 +1,18 @@
 const API = "http://127.0.0.1:8000";
 
 document.querySelector("#gen").addEventListener("click", async () => {
-  const resume_md = document.querySelector("#resume").value.trim();
-  const jd_text = document.querySelector("#jd").value.trim();
   const style = document.querySelector("#style").value;
-
-  if (!resume_md || !jd_text) {
-    alert("Paste both resume and job description.");
-    return;
-  }
 
   const btn = document.querySelector("#gen");
   btn.disabled = true;
   btn.textContent = "Generating...";
 
   try {
+    // Don't send resume_md or jd_text - let backend read from data folder
     const res = await fetch(`${API}/api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resume_md, jd_text, style })
+      body: JSON.stringify({ style })
     });
 
     const data = await res.json();
@@ -29,10 +23,10 @@ document.querySelector("#gen").addEventListener("click", async () => {
 
     document.querySelector("#out").value = data.md;
   } catch (e) {
-    alert("Backend not running or blocked by CORS.");
+    alert("Backend not running or blocked by CORS. Make sure the backend is running on http://127.0.0.1:8000");
   } finally {
     btn.disabled = false;
-    btn.textContent = "Generate";
+    btn.textContent = "Generate Cover Letter";
   }
 });
 
