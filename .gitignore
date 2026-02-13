@@ -7,3 +7,6 @@ env/
 
 # Ignore out folder
 out/
+
+data/*
+!data/.gitkeep

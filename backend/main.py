@@ -1,16 +1,14 @@
 import os
-import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
 from pydantic import BaseModel
 
 from prompts import build_cover_letter_prompt
 from llm_client_gemini import generate_text
-from export_pdf import md_to_pdf
+from json_to_md import json_to_md
 
 load_dotenv()
 
@@ -127,27 +125,24 @@ def generate(req: GenerateReq):
 
     # Generate
     try:
-        md = generate_text(prompt, model_name=req.model, temperature=req.temperature)
+        json_response = generate_text(prompt, model_name=req.model, temperature=req.temperature)
     except Exception as e:
         # Show the real Gemini error in Swagger instead of generic 500
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"md": md}
+    # Parse JSON and convert to Markdown
+    try:
+        md = json_to_md(json_response)
+    except Exception as e:
+        # If JSON parsing fails, return error with raw response for debugging
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to parse API response as JSON: {str(e)}. Raw response: {json_response[:200]}..."
+        )
 
+    # Save markdown to data folder
+    md_filename = "cover_letter.md"
+    md_path = (DATA_DIR / md_filename).resolve()
+    md_path.write_text(md, encoding="utf-8")
 
-class PdfReq(BaseModel):
-    md_text: str
-
-
-@app.post("/api/pdf")
-def pdf(req: PdfReq):
-    with tempfile.TemporaryDirectory() as td:
-        out_pdf = Path(td) / "coverletter.pdf"
-        md_to_pdf(req.md_text, out_pdf)
-        pdf_bytes = out_pdf.read_bytes()
-
-    return Response(
-        content=pdf_bytes,
-        media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=coverletter.pdf"},
-    )
+    return {"md": md, "file_path": str(md_path), "filename": md_filename}

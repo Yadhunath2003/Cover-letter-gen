@@ -1,6 +1,5 @@
 google-genai
 markdown>=3.6
-pdfkit>=1.0.0
 fastapi
 uvicorn
 pydantic
