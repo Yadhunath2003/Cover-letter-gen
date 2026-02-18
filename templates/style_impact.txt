@@ -1,29 +1,8 @@
-# Prompts for Impactful Cover Letters
 
-## Opening Hook Prompts
-- Start with a specific achievement that demonstrates your value
-- Open with a compelling question that relates to the role
-- Begin with a brief anecdote showing your passion for the field
+Lead with the most impressive number or outcome from the resume, 
+but give it one line of human context before stating it — not "I increased revenue by 30%" 
+but "The campaign was a mess when I inherited it. 
+Six months later, revenue was up 30%." Short punchy sentences. 
+No throat-clearing. End with quiet confidence, not eagerness.
 
-## Body Content Prompts
-- Highlight 2-3 quantifiable achievements relevant to the position
-- Explain how your skills directly solve the company's pain points
-- Show knowledge of the company's mission and connect it to your values
-- Demonstrate cultural fit by referencing company values or initiatives
 
-## Closing Prompts
-- End with a clear call to action and enthusiasm for next steps
-- Reiterate your unique value proposition in one sentence
-- Express genuine interest in contributing to the company's goals
-
-## Tone & Style Prompts
-- Use action verbs and specific examples instead of generic statements
-- Keep language professional but personable
-- Show personality while maintaining formality
-- Vary sentence structure to maintain reader interest
-
-## Key Elements Checklist
-- Customize for each role (avoid one-size-fits-all letters)
-- Use the company name and specific job title
-- Address the hiring manager by name if possible
-- Keep to one page maximum
