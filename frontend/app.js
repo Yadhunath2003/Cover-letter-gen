@@ -1,50 +1,117 @@
 const API = "http://127.0.0.1:8000";
 
-// ── State ────────────────────────────────────────────────────────────────────
-let currentProfile = null;
-let activeHistoryItem = null;
+// ── DOM refs — matching index.html IDs exactly ────────────────────────────────
+const profileEl    = document.querySelector("#profile");
+const companyEl    = document.querySelector("#company");
+const styleEl      = document.querySelector("#style");
+const genBtn       = document.querySelector("#gen");
+const pdfBtn       = document.querySelector("#pdf");
+const outEl        = document.querySelector("#out");
+const previewFrame = document.querySelector("#preview-frame");
+const previewPH    = document.querySelector("#preview-placeholder");
+const historyEl    = document.querySelector("#history");
+const statusEl     = document.querySelector("#status");
+const activeLbl    = document.querySelector("#active-label");
 
-// ── DOM refs ─────────────────────────────────────────────────────────────────
-const profileEl   = document.querySelector("#profile");
-const companyEl   = document.querySelector("#company");
-const styleEl     = document.querySelector("#style");
-const genBtn      = document.querySelector("#gen");
-const pdfBtn      = document.querySelector("#pdf");
-const outEl       = document.querySelector("#out");
-const historyEl   = document.querySelector("#history");
-const statusEl    = document.querySelector("#status");
-const activeLbl   = document.querySelector("#active-label");
+// ── State ─────────────────────────────────────────────────────────────────────
+let activeFilename  = null;
+let previewDebounce = null;
+let currentTab      = "edit";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Status ────────────────────────────────────────────────────────────────────
 function setStatus(msg, type = "") {
   statusEl.textContent = msg;
   statusEl.className   = "status " + type;
 }
 
-function clearStatus() { setStatus(""); }
+// ── Tab switcher: Edit ↔ Preview ──────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelector("#tab-edit").classList.toggle("active", tab === "edit");
+  document.querySelector("#tab-preview").classList.toggle("active", tab === "preview");
+
+  if (tab === "edit") {
+    outEl.style.display           = "block";
+    previewFrame.style.display    = "none";
+    previewPH.style.display       = "none";
+  } else {
+    outEl.style.display           = "none";
+    // Show frame if we have content, placeholder if not
+    const hasMd = outEl.value.trim();
+    previewFrame.style.display    = hasMd ? "block" : "none";
+    previewPH.style.display       = hasMd ? "none" : "flex";
+    if (hasMd) refreshPreview();
+  }
+}
+
+// ── Live preview ──────────────────────────────────────────────────────────────
+async function refreshPreview() {
+  const md = outEl.value.trim();
+  if (!md) return;
+
+  try {
+    const res = await fetch(`${API}/api/preview`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ md_text: md }),
+    });
+
+    if (!res.ok) return;
+
+    const html = await res.text();
+    previewFrame.srcdoc = html;
+  } catch {
+    // Silent fail — preview is non-critical
+  }
+}
+
+// Debounce preview refresh while editing
+outEl.addEventListener("input", () => {
+  clearTimeout(previewDebounce);
+  previewDebounce = setTimeout(() => {
+    if (currentTab === "preview") refreshPreview();
+  }, 600);
+});
 
 // ── Load profiles into dropdown ───────────────────────────────────────────────
 async function loadProfiles() {
   try {
-    const res  = await fetch(`${API}/api/profiles`);
+    const res = await fetch(`${API}/api/profiles`);
+    console.log("GET /api/profiles status:", res.status);
     const data = await res.json();
+    console.log("profiles response:", data);
     const profiles = data.profiles || [];
 
-    profileEl.innerHTML = profiles.length
-      ? profiles.map(p => `<option value="${p}">${p}</option>`).join("")
-      : `<option value="">No profiles found</option>`;
-
-    if (profiles.length) {
-      currentProfile = profiles[0];
-      await loadHistory(currentProfile);
+    if (!profiles.length) {
+      profileEl.innerHTML = `<option value="">No profiles found</option>`;
+      setStatus("⚠ No profiles found — create a folder under data/profiles/", "error");
+      return;
     }
-  } catch {
+
+    profileEl.innerHTML = profiles.map(p =>
+      `<option value="${p}">${p.replace(/_/g, " ")}</option>`
+    ).join("");
+
+    await loadHistory(profiles[0]);
+
+  } catch (err) {
+    console.error("loadProfiles failed:", err);
     profileEl.innerHTML = `<option value="">Backend not running</option>`;
-    setStatus("⚠ Cannot reach backend at " + API, "error");
+    setStatus("⚠ Cannot reach backend at " + API + " — is uvicorn running?", "error");
   }
 }
 
-// ── Load history for selected profile ────────────────────────────────────────
+profileEl.addEventListener("change", async () => {
+  activeFilename = null;
+  activeLbl.style.display = "none";
+  outEl.value = "";
+  previewFrame.srcdoc = "";
+  setPdfEnabled(false);
+  setStatus("");
+  await loadHistory(profileEl.value);
+});
+
+// ── History ───────────────────────────────────────────────────────────────────
 async function loadHistory(profile) {
   if (!profile) return;
   historyEl.innerHTML = `<div class="empty-state">Loading...</div>`;
@@ -58,7 +125,6 @@ async function loadHistory(profile) {
   }
 }
 
-// ── Render history list ───────────────────────────────────────────────────────
 function renderHistory(letters, profile) {
   if (!letters.length) {
     historyEl.innerHTML = `<div class="empty-state">No cover letters yet for this profile</div>`;
@@ -80,38 +146,31 @@ function renderHistory(letters, profile) {
   });
 }
 
-// ── Open a saved cover letter from history ────────────────────────────────────
 async function openHistoryItem(item) {
   const file    = item.dataset.file;
   const profile = item.dataset.profile;
 
-  // Highlight active
   historyEl.querySelectorAll(".history-item").forEach(i => i.classList.remove("active"));
   item.classList.add("active");
-  activeHistoryItem = file;
 
   setStatus("Loading...");
   try {
     const res  = await fetch(`${API}/api/profiles/${encodeURIComponent(profile)}/cover_letters/${encodeURIComponent(file)}`);
     const data = await res.json();
+
     outEl.value = data.md;
-    activeLbl.textContent = file.replace(".md", "");
+    activeFilename = file;
+    activeLbl.textContent   = file.replace(".md", "");
     activeLbl.style.display = "inline-block";
-    clearStatus();
+    setPdfEnabled(true);
+    setStatus(`Loaded: ${file}`, "success");
+
+    // Refresh preview if on preview tab
+    if (currentTab === "preview") refreshPreview();
   } catch {
     setStatus("Failed to load cover letter", "error");
   }
 }
-
-// ── Profile change handler ────────────────────────────────────────────────────
-profileEl.addEventListener("change", async () => {
-  currentProfile   = profileEl.value;
-  activeHistoryItem = null;
-  activeLbl.style.display = "none";
-  outEl.value = "";
-  clearStatus();
-  await loadHistory(currentProfile);
-});
 
 // ── Generate ──────────────────────────────────────────────────────────────────
 genBtn.addEventListener("click", async () => {
@@ -141,11 +200,14 @@ genBtn.addEventListener("click", async () => {
     }
 
     outEl.value = data.md;
-    activeLbl.textContent  = data.filename.replace(".md", "");
+    activeFilename = data.filename;
+    activeLbl.textContent   = data.filename.replace(".md", "");
     activeLbl.style.display = "inline-block";
+    setPdfEnabled(true);
     setStatus(`✓ Saved as ${data.filename}`, "success");
 
-    // Refresh history so the new file appears
+    // Auto-switch to edit tab so user can review immediately
+    switchTab("edit");
     await loadHistory(profile);
 
   } catch {
@@ -162,6 +224,8 @@ pdfBtn.addEventListener("click", async () => {
   if (!md_text) { setStatus("Generate a cover letter first", "error"); return; }
 
   setStatus("Generating PDF...");
+  setPdfEnabled(false);
+
   try {
     const res = await fetch(`${API}/api/pdf`, {
       method:  "POST",
@@ -179,14 +243,22 @@ pdfBtn.addEventListener("click", async () => {
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href     = url;
-    a.download = (activeLbl.textContent || "coverletter") + ".pdf";
+    a.download = (activeFilename || "cover_letter").replace(".md", "") + ".pdf";
     a.click();
     URL.revokeObjectURL(url);
     setStatus("✓ PDF downloaded", "success");
+
   } catch {
     setStatus("PDF generation failed", "error");
+  } finally {
+    setPdfEnabled(true);
   }
 });
 
+function setPdfEnabled(enabled) {
+  pdfBtn.disabled = !enabled;
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
+setPdfEnabled(false);
 loadProfiles();

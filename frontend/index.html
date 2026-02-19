@@ -24,11 +24,20 @@
     .btn-primary:disabled { background: #aac; cursor: not-allowed; }
     .btn-secondary { background: #eee; color: #333; }
     .btn-secondary:hover { background: #ddd; }
+    .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
 
     textarea { width: 100%; height: 380px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 13px; font-family: monospace; resize: vertical; }
+
+    /* Preview tab styles */
+    .tab-row { display: flex; gap: 0; margin-bottom: 10px; border-bottom: 2px solid #e0e0e0; }
+    .tab { padding: 6px 16px; cursor: pointer; font-size: 13px; font-weight: bold; color: #888; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .tab.active { color: #4a7cdc; border-bottom: 2px solid #4a7cdc; }
+
+    #preview-frame { width: 100%; height: 380px; border: 1px solid #ccc; border-radius: 5px; display: none; background: #fff; }
+    #preview-placeholder { width: 100%; height: 380px; border: 1px solid #ccc; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 13px; background: #fafafa; }
 
     .history-list { max-height: 260px; overflow-y: auto; }
     .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 5px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
@@ -55,7 +64,7 @@
       <div class="field">
         <label>Profile</label>
         <select id="profile">
-          <option value="">— loading profiles —</option>
+
         </select>
       </div>
       <div class="field">
@@ -76,7 +85,7 @@
       </div>
       <div class="field">
         <label>&nbsp;</label>
-        <button id="pdf" class="btn btn-secondary">Download PDF</button>
+        <button id="pdf" class="btn btn-secondary" disabled>Download PDF</button>
       </div>
     </div>
     <div id="status" class="status"></div>
@@ -84,10 +93,23 @@
 
   <!-- Main area: editor + history -->
   <div class="two-col">
-    <!-- Editor -->
+
+    <!-- Editor + Preview -->
     <div class="card">
-      <h3>Generated Cover Letter <span id="active-label" class="badge" style="display:none"></span></h3>
-      <textarea id="out" placeholder="Your cover letter will appear here..."></textarea>
+      <h3>Cover Letter <span id="active-label" class="badge" style="display:none"></span></h3>
+
+      <!-- Tab switcher -->
+      <div class="tab-row">
+        <button class="tab active" id="tab-edit" onclick="switchTab('edit')">✏️ Edit Markdown</button>
+        <button class="tab" id="tab-preview" onclick="switchTab('preview')">👁 Preview</button>
+      </div>
+
+      <!-- Editable markdown textarea -->
+      <textarea id="out" placeholder="Your cover letter will appear here. You can edit it directly before downloading as PDF."></textarea>
+
+      <!-- Styled preview iframe -->
+      <div id="preview-placeholder">Generate a cover letter to see preview</div>
+      <iframe id="preview-frame" frameborder="0"></iframe>
     </div>
 
     <!-- History -->
@@ -97,6 +119,7 @@
         <div class="empty-state">Select a profile to see history</div>
       </div>
     </div>
+
   </div>
 
   <script src="app.js"></script>
