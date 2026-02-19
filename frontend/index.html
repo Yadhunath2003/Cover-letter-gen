@@ -4,34 +4,100 @@
   <meta charset="utf-8" />
   <title>Cover Letter Generator</title>
   <style>
-    body { font-family: Arial; max-width: 1000px; margin: 20px auto; padding: 0 12px; }
-    textarea { width: 100%; height: 400px; }
-    .row { display: flex; gap: 12px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
-    button { padding: 10px 14px; cursor: pointer; }
-    select, input { padding: 8px; }
-    .info { background: #f0f0f0; padding: 12px; border-radius: 6px; margin: 10px 0; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; max-width: 1100px; margin: 20px auto; padding: 0 16px; background: #f9f9f9; }
+    h2 { margin-bottom: 4px; }
+    .subtitle { color: #666; font-size: 14px; margin-bottom: 20px; }
+
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .card h3 { margin: 0 0 12px; font-size: 15px; color: #333; }
+
+    .row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 13px; color: #555; font-weight: bold; }
+    select, input { padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+    select:focus, input:focus { outline: none; border-color: #4a7cdc; }
+
+    .btn { padding: 9px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .btn-primary { background: #4a7cdc; color: #fff; }
+    .btn-primary:hover { background: #3a6ccc; }
+    .btn-primary:disabled { background: #aac; cursor: not-allowed; }
+    .btn-secondary { background: #eee; color: #333; }
+    .btn-secondary:hover { background: #ddd; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    textarea { width: 100%; height: 380px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 13px; font-family: monospace; resize: vertical; }
+
+    .history-list { max-height: 260px; overflow-y: auto; }
+    .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 5px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+    .history-item:hover { background: #f5f8ff; }
+    .history-item.active { background: #e8efff; }
+    .history-meta { font-size: 12px; color: #888; }
+    .history-name { font-size: 13px; font-weight: bold; color: #333; }
+    .empty-state { color: #aaa; font-size: 13px; padding: 12px 0; text-align: center; }
+
+    .badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #e8efff; color: #4a7cdc; font-weight: bold; margin-left: 6px; }
+    .status { font-size: 13px; color: #666; margin-top: 8px; min-height: 20px; }
+    .status.error { color: #c00; }
+    .status.success { color: #080; }
   </style>
 </head>
 <body>
   <h2>Cover Letter Generator</h2>
+  <p class="subtitle">Select a profile, enter the company name, and generate a tailored cover letter.</p>
 
-  <div class="info">
-    <strong>📁 Data Source:</strong> Automatically reads from <code>data/resume.md</code> and <code>data/job_description.txt</code>
+  <!-- Controls -->
+  <div class="card">
+    <h3>Settings</h3>
+    <div class="row">
+      <div class="field">
+        <label>Profile</label>
+        <select id="profile">
+          <option value="">— loading profiles —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Company Name</label>
+        <input id="company" type="text" placeholder="e.g. Google" style="width:180px" />
+      </div>
+      <div class="field">
+        <label>Style</label>
+        <select id="style">
+          <option value="concise">Concise</option>
+          <option value="impact" selected>Impact</option>
+          <option value="narrative">Narrative</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button id="gen" class="btn btn-primary">Generate Cover Letter</button>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button id="pdf" class="btn btn-secondary">Download PDF</button>
+      </div>
+    </div>
+    <div id="status" class="status"></div>
   </div>
 
-  <div class="row">
-    <label>Style</label>
-    <select id="style">
-      <option value="concise">Concise</option>
-      <option value="impact">Impact</option>
-    </select>
+  <!-- Main area: editor + history -->
+  <div class="two-col">
+    <!-- Editor -->
+    <div class="card">
+      <h3>Generated Cover Letter <span id="active-label" class="badge" style="display:none"></span></h3>
+      <textarea id="out" placeholder="Your cover letter will appear here..."></textarea>
+    </div>
 
-    <button id="gen">Generate Cover Letter</button>
-    <button id="pdf">Download PDF</button>
+    <!-- History -->
+    <div class="card">
+      <h3>Cover Letter History</h3>
+      <div id="history" class="history-list">
+        <div class="empty-state">Select a profile to see history</div>
+      </div>
+    </div>
   </div>
-
-  <label>Generated Cover Letter (Markdown)</label>
-  <textarea id="out" placeholder="Click 'Generate Cover Letter' to create your cover letter..."></textarea>
 
   <script src="app.js"></script>
 </body>

@@ -28,7 +28,7 @@ Return ONLY valid JSON with this exact structure:
   "candidate_name": "Full name from resume",
   "candidate_email": "Email from resume",
   "candidate_phone": "Phone from resume or empty string",
-  "date": "Today's date in YYYY-MM-DD format",
+  "date": "Today's date in MM-DD-YYYY format",
   "recipient_name": "Recipient name if in JD, else empty string",
   "recipient_title": "Job title from the JD",
   "company_name": "Company name from the JD",
