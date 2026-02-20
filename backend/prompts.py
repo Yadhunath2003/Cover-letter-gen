@@ -21,17 +21,19 @@ STRUCTURE:
 - Body paragraph 2: Why this company/role specifically — not just "your mission aligns with my values". Try to connect with somthing with my skills and interests from the resume.
 - Closing: 2 sentences max. Low-pressure ask for a conversation
 
-Keep it under 350 words. Slight imperfection in flow is fine — it reads more human.
+Keep it between 220-250 words of content and below 350 overall words. Slight imperfection in flow is fine — it reads more human.
 
 Return ONLY valid JSON with this exact structure:
 {
   "candidate_name": "Full name from resume",
   "candidate_email": "Email from resume",
   "candidate_phone": "Phone from resume or empty string",
-  "date": "Today's date in MM-DD-YYYY format",
+  "candidate_address": "Address from resume (Mostly City and State) or empty string",
+  "date": "Today's date in Month Day-th, Year format (e.g. June 1st, 2025)",
   "recipient_name": "Recipient name if in JD, else empty string",
-  "recipient_title": "Job title from the JD",
+  "recipient_title": "Prefferred Job title from the JD, or the Job title from the JD if no preferred title is given.",
   "company_name": "Company name from the JD",
+  "company_address": "Company address if in JD, else empty string",
   "greeting": "Dear [Name] or Dear Hiring Manager",
   "opening_paragraph": "Hook-first opening, 2-3 sentences",
   "body_paragraphs": ["accomplishment paragraph", "company-fit paragraph"],

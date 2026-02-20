@@ -58,7 +58,7 @@ def md_to_html(md_text: str) -> str:
 <head>
   <meta charset="UTF-8" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Garamond:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Garamond:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Dancing+Script:wght@400;700&display=swap');
 
     * {{
       margin: 0;
@@ -86,9 +86,10 @@ def md_to_html(md_text: str) -> str:
     /* ── Header ── */
     .header {{
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 6px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 8px;
     }}
 
     .header-left .name {{
@@ -97,19 +98,28 @@ def md_to_html(md_text: str) -> str:
       letter-spacing: 0.5px;
       color: #111;
       line-height: 1.1;
+      margin-bottom: 6px;
     }}
 
     .header-right {{
-      text-align: right;
+      text-align: center;
       font-size: 9.5pt;
       color: #444;
       line-height: 1.8;
+      margin-bottom: 2px;
     }}
 
-    .divider {{
+    .divider-thick {{
       border: none;
-      border-top: 1.5px solid #1a1a1a;
-      margin: 8px 0 18px 0;
+      border-top: 2.5px solid #1a1a1a;
+      margin: 12px 0 0 0;
+      color: yellow;
+    }}
+
+    .divider-thin {{
+      border: none;
+      border-top: 0.75px solid #1a1a1a;
+      margin: 6px 0 18px 0;
     }}
 
     /* ── Letter Body ── */
@@ -142,15 +152,17 @@ def md_to_html(md_text: str) -> str:
     }}
 
     .body .signature {{
-      font-weight: 600;
-      font-size: 11.5pt;
+      font-family: 'Dancing Script', cursive;
+      font-weight: 700;
+      font-size: 18pt;
+      color: #1a1a1a;
     }}
   </style>
 </head>
 <body>
   <div class="page">
 
-    <!-- Header: Name left, Contact right -->
+    <!-- Header: Centered Name and Contact -->
     <div class="header">
       <div class="header-left">
         <div class="name">{name}</div>
@@ -160,7 +172,8 @@ def md_to_html(md_text: str) -> str:
       </div>
     </div>
 
-    <hr class="divider" />
+    <hr class="divider-thick" />
+    <hr class="divider-thin" />
 
     <!-- Letter Body -->
     <div class="body">

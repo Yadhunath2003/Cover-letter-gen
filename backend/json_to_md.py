@@ -39,6 +39,8 @@ def json_to_md(json_str: str) -> str:
         contact_parts.append(data["candidate_email"])
     if data.get("candidate_phone"):
         contact_parts.append(data["candidate_phone"])
+    if data.get("candidate_address"):
+        contact_parts.append(data["candidate_address"])
     if contact_parts:
         md_lines.append("  |  ".join(contact_parts))
         md_lines.append("")
@@ -60,6 +62,8 @@ def json_to_md(json_str: str) -> str:
         recipient_lines.append(data["recipient_title"])
     if data.get("company_name"):
         recipient_lines.append(data["company_name"])
+    if data.get("company_address"):
+        recipient_lines.append(data["company_address"])
 
     if recipient_lines:
         md_lines.extend(recipient_lines)

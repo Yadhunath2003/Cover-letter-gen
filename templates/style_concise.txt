@@ -3,8 +3,9 @@ Tone: Direct, self-aware, no fluff.
 The letter should feel like it was written by someone who thought carefully 
 about what to say and then said exactly that — nothing more. 
 
-- Open with one specific thing from the job posting or company that genuinely 
-  caught your attention. Not "I was excited" — what actually made you stop scrolling.
+- Open with one specific topic from the job description that I am interested in (you can refer the resume).
+ Not "I was excited" — what actually made you stop scrolling. After the introduction, sentences connect it to what the user is 
+ doing and there goal.
 - One paragraph on what you've done (university roles, projects, workshops) 
   framed around what you learned or contributed, not just what you did.
 - Close in 1-2 sentences. No "I look forward to hearing from you at your earliest 

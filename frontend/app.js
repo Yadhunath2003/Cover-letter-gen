@@ -138,11 +138,48 @@ function renderHistory(letters, profile) {
         <div class="history-meta">${l.created}</div>
       </div>
       <div class="history-meta">${(l.size / 1024).toFixed(1)} KB</div>
+      <button class="delete-btn" data-file="${l.filename}" data-profile="${profile}" title="Delete">✖</button>
     </div>
   `).join("");
 
   historyEl.querySelectorAll(".history-item").forEach(item => {
     item.addEventListener("click", () => openHistoryItem(item));
+  });
+
+  historyEl.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const file = btn.dataset.file;
+      const profile = btn.dataset.profile;
+
+      if (!confirm(`Delete ${file}? This cannot be undone.`)) return;
+
+      setStatus("Deleting...");
+      try {
+        const res = await fetch(`${API}/api/profiles/${encodeURIComponent(profile)}/cover_letters/${encodeURIComponent(file)}`, {
+          method: "DELETE",
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setStatus("Delete failed: " + (data.detail || res.status), "error");
+          return;
+        }
+
+        setStatus(`Deleted ${file}`, "success");
+
+        if (activeFilename === file) {
+          activeFilename = null;
+          activeLbl.style.display = "none";
+          outEl.value = "";
+          setPdfEnabled(false);
+        }
+
+        await loadHistory(profile);
+      } catch (err) {
+        setStatus("Delete failed", "error");
+      }
+    });
   });
 }
 

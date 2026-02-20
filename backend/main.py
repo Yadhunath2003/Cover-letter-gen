@@ -114,6 +114,23 @@ def get_cover_letter(profile: str, filename: str):
     return {"filename": filename, "md": cl_path.read_text(encoding="utf-8")}
 
 
+@app.delete("/api/profiles/{profile}/cover_letters/{filename}")
+def delete_cover_letter(profile: str, filename: str):
+    profile_dir = _get_profile_dir(profile)
+    cl_path = (profile_dir / "cover_letters" / filename).resolve()
+
+    if not str(cl_path).startswith(str(profile_dir)):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    if not cl_path.exists():
+        raise HTTPException(status_code=404, detail=f"Cover letter not found: {filename}")
+
+    try:
+        cl_path.unlink()
+        return {"deleted": filename}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete: {str(e)}")
+
+
 # ── Styles ────────────────────────────────────────────────────────────────────
 
 @app.get("/api/styles")
